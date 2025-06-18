@@ -22,9 +22,9 @@ boundaryField
 {
     outlet
     {
-        type            inletOutlet;
-        inletValue      uniform (0 0 0);
-        value           $internalField;
+        type            fixedValue;
+        value      uniform (10000 10000 10000);
+        // value           $internalField;
     }
 
     inlet

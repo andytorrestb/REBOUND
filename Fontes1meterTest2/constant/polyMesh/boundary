@@ -26,7 +26,7 @@ FoamFile
     }
     outlet
     {
-        type            wall;
+        type            patch;
         nFaces          6011;
         startFace       411982;
     }

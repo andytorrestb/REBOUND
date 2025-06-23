@@ -110,11 +110,25 @@ def monitor_file(filepath, interval=10):
     }
 
     plt.ion()  # Turn on interactive mode
-    fig, ax = plt.subplots()
-    line, = ax.plot([], [], 'bo-')
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Number of dsmc particles")
-    ax.set_title("Time vs Number of dsmc particles")
+    fig, (ax1, ax3) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+    fig.suptitle("Simulation Monitoring")
+
+    # Top subplot: Number of particles and Mass
+    line1, = ax1.plot([], [], 'bo-', label="Number of dsmc particles")
+    ax1.set_ylabel("Number of dsmc particles")
+    ax1.set_title("Particles and Mass vs Time")
+    ax2 = ax1.twinx()
+    line2, = ax2.plot([], [], 'r^-', label="Mass in system")
+    ax2.set_ylabel("Mass in system (kg)")
+
+    # Bottom subplot: Linear kinetic energy, Internal energy, Total energy
+    line3, = ax3.plot([], [], 'g.-', label="Avg linear kinetic energy")
+    line4, = ax3.plot([], [], 'b.-', label="Avg internal energy")
+    line5, = ax3.plot([], [], 'm.-', label="Avg total energy")
+    ax3.set_xlabel("Time")
+    ax3.set_ylabel("Energy (J)")
+    ax3.set_title("Energies vs Time")
+    ax3.legend(loc="best")
 
     while True:
         sim_data = tail_latest_timestep(filepath)
@@ -123,18 +137,29 @@ def monitor_file(filepath, interval=10):
         if sim_data and all(value is not None for value in sim_data.values()):
             for key in data_arrays:
                 value = sim_data[key]
-                # Convert to float if possible, else keep as is (e.g., None)
-                # try:
                 value = float(value)
-                # except (TypeError, ValueError):
-                #     value = 0
                 data_arrays[key].append(value)
         
-        # Update plot
-        line.set_xdata(data_arrays["Time"])
-        line.set_ydata(data_arrays["Number of dsmc particles"])
-        ax.relim()
-        ax.autoscale_view()
+        # Update top subplot
+        line1.set_xdata(data_arrays["Time"])
+        line1.set_ydata(data_arrays["Number of dsmc particles"])
+        line2.set_xdata(data_arrays["Time"])
+        line2.set_ydata(data_arrays["Mass in system"])
+        ax1.relim()
+        ax1.autoscale_view()
+        ax2.relim()
+        ax2.autoscale_view()
+
+        # Update bottom subplot
+        line3.set_xdata(data_arrays["Time"])
+        line3.set_ydata(data_arrays["Average linear kinetic energy"])
+        line4.set_xdata(data_arrays["Time"])
+        line4.set_ydata(data_arrays["Average internal energy"])
+        line5.set_xdata(data_arrays["Time"])
+        line5.set_ydata(data_arrays["Average total energy"])
+        ax3.relim()
+        ax3.autoscale_view()
+
         plt.draw()
         plt.pause(0.01)
 
@@ -143,6 +168,7 @@ def monitor_file(filepath, interval=10):
             print(f"{key}: {values[-5:]}")
 
         time.sleep(interval)
+
 
 if __name__ == "__main__":
     filepath = "log.dsmcFoam"
